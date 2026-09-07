@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.3'  # ← UPDATE INI dari 8.2 ke 8.3
           extensions: mbstring, pdo_sqlite
       
       - name: Install Composer Dependencies
@@ -42,7 +42,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.3'
       
       - name: Install Composer Dependencies
         run: composer install --no-interaction --prefer-dist
