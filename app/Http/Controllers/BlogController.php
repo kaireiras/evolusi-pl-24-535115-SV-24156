@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
 use App\Models\Blog;
+use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BlogController extends Controller
 {
