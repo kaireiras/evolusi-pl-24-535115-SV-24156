@@ -1,0 +1,51 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite
+      
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist
+      
+      - name: Copy .env file
+        run: cp .env.example .env
+      
+      - name: Generate App Key
+        run: php artisan key:generate
+      
+      - name: Run Tests
+        run: php artisan test
+
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist
+      
+      - name: Run Pint Linter
+        run: ./vendor/bin/pint --test
