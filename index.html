@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>surat untuk surga</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Times New Roman', Times, serif;
+  background: #fff;
+  color: #000;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2.5rem 2.5rem 4rem;
+}
+
+h1 {
+  font-size: 0.95rem;
+  font-weight: normal;
+  margin-bottom: 2.5rem;
+  letter-spacing: 0;
+}
+
+.envelope-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2rem 1rem;
+}
+
+.env-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.env-icon {
+  width: 72px;
+  height: 50px;
+}
+.env-icon svg { width: 100%; height: 100%; }
+
+.env-card:hover .env-icon svg * { stroke: #555; }
+
+.env-label {
+  font-size: 0.68rem;
+  text-align: center;
+  line-height: 1.4;
+  color: #000;
+}
+
+/* OVERLAY */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 100;
+}
+.overlay.open { display: block; }
+
+/* POPUP — positioned like figma: overlapping the grid, upper-right of clicked card area */
+.letter-popup {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-10%);
+  width: 380px;
+  max-width: 92vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #bbb;
+  padding: 1.25rem 1.5rem 1.5rem;
+  z-index: 101;
+  font-family: 'Times New Roman', serif;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.popup-close {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #000;
+  font-family: 'Times New Roman', serif;
+  margin-top: -2px;
+}
+
+.popup-date {
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.popup-top-row {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+.popup-env-open {
+  width: 52px;
+  height: 36px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.popup-env-open svg { width: 100%; height: 100%; }
+
+.popup-to {
+  font-size: 0.73rem;
+  line-height: 1.5;
+}
+
+.popup-body {
+  font-size: 0.72rem;
+  line-height: 1.65;
+  text-align: justify;
+  color: #111;
+}
+.popup-body p { margin-bottom: 0.65rem; }
+.popup-body p:last-child { margin-bottom: 0; }
+
+/* admin */
+.admin-link {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.5rem;
+  font-family: 'Times New Roman', serif;
+  font-size: 0.72rem;
+  color: #bbb;
+  text-decoration: none;
+  border-bottom: 1px solid #ddd;
+}
+.admin-link:hover { color: #000; border-color: #000; }
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .envelope-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem 0.75rem; }
+  .letter-popup { left: 50%; transform: translateX(-50%); top: 60px; }
+}
+@media (max-width: 380px) {
+  .envelope-grid { grid-template-columns: repeat(2, 1fr); }
+  .page { padding: 1.5rem 1.25rem 3rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>surat untuk surga</h1>
+  <div class="envelope-grid" id="grid"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
+
+<div class="letter-popup" id="popup" style="display:none">
+  <button class="popup-close" onclick="closePopup()">✕</button>
+  <div class="popup-date" id="p-date"></div>
+  <div class="popup-top-row">
+    <div class="popup-env-open">
+      <svg viewBox="0 0 52 36" fill="none">
+        <rect x="0.6" y="7" width="50.8" height="28.4" stroke="#000" stroke-width="1"/>
+        <polyline points="0.6,7 26,0.6 51.4,7" stroke="#000" stroke-width="1" fill="none"/>
+        <line x1="0.6" y1="35.4" x2="26" y2="21" stroke="#000" stroke-width="1"/>
+        <line x1="51.4" y1="35.4" x2="26" y2="21" stroke="#000" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="popup-to" id="p-to"></div>
+  </div>
+  <div class="popup-body" id="p-body"></div>
+</div>
+
+<a href="admin.html" class="admin-link">admin</a>
+
+<script>
+const letters = [
+  {
+    date: "May 7, 2026", label: "About",
+    kepada: ["Kepada", "Yth. Bapak", "Di", "Surga"],
+    body: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent rhoncus ante id ante ultrices, a efficitur lacus feugiat. Donec nec felis vel odio viverra mattis egestas est. Nunc ullamcorper, risus at pretium porta, est lectus blandit nisi, sit amet convallis mauris odio in quam. Vivamus scelerisque laoreet orci, sit amet porta dolor condimentum sit amet. Pellentesque a arcu eget metus ornare viverra vel elit velit. Ut vitae odio velit. Sed laoreet leo eget mi hendrerit, eget vulputate libero consequat. Duis fermentum risus vitae urna bibendum ultricies. Suspendisse semper tempor rhoncus. Pellentesque auctor urna eget odio varius, ac feugiat eros rhoncus. Sed maximus turpis at posuere bibendum. Sed non commodo mauris. Nam tristique id nisl a viverra. In velit quam, congue vehicula pulvinar in, fringilla euismod elementum tellus. Quisque iaculis arcu non ex placerat, sit amet efficitur sapien at vulputat. Quisque pretium faucibus elit id sodales.",
+      "Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Praesent vel purus ornare, finibus purus vel, volutpat bibendum. Orci eget sem tempus, sagittis massa ut, maximus turpis. Nullam hendrerit est at ligula aliquam, ac commodo mauris mollis. Quisque sed ipsum ut velit egestas egestas id vel quam. Donec vehicula sem in enim accumsan egestas. Aenean luctus non ante in pretium. Proin fermentum purus a metus venenatis eleifend. In hac habitasse platea dictumst.",
+      "Ut lacinia mattis tellus a facilisis. Integer mollis lorem vehicula, placerat nibh sit amet, condimentum augue. Vivamus feugiat metus at dictum dignissim. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec est felis, aliquet a ex vitae, efficitur rhoncus tellus. Phasellus lobortis enim sapien, quis condimentum quam ullamcorper a. Maecenas vel ante vel purus aliquet auctor eu eget tortor. Curabitur tempus sapien ut quam viverra posuere. Morbi fermentum pulvinar nibh sed lorem interdum, et luctus nibh lobortis. In justo risus, posuere non feugiat sit amet, ullamcorper vel sapien. Sed sed felis lectus. Suspendisse porttitor tellus at dolor pellentesque ornare. Nullam consequat quam vitae velit interdum vestibulum, odio massa efficitur odio, vitae rhoncus mi lectus vitae risus."
+    ]
+  },
+  { label: "About", kepada: ["Kepada","Yth. Ibu","Di","Surga"], body: ["Masih banyak yang ingin kuceritakan kepadamu, Bu. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent rhoncus ante id ante ultrices, a efficitur lacus feugiat. Donec nec felis vel odio viverra mattis egestas est. Nunc ullamcorper, risus at pretium porta, est lectus blandit nisi.", "Vivamus scelerisque laoreet orci, sit amet porta dolor condimentum sit amet. Pellentesque a arcu eget metus ornare viverra vel elit velit. Ut vitae odio velit. Sed laoreet leo eget mi hendrerit, eget vulputate libero consequat."] },
+  { label: "About", kepada: ["Kepada","Yth. Kakek","Di","Surga"], body: ["Kenangan bersamamu tidak pernah pudar. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent vel purus ornare, finibus purus vel, volutpat bibendum. Orci eget sem tempus, sagittis massa ut, maximus turpis.", "Nullam hendrerit est at ligula aliquam, ac commodo mauris mollis. Quisque sed ipsum ut velit egestas egestas id vel quam."] },
+  { label: "About", kepada: ["Kepada","Yth. Nenek","Di","Surga"], body: ["Rindu yang tak terucap. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut lacinia mattis tellus a facilisis. Integer mollis lorem vehicula, placerat nibh sit amet, condimentum augue. Vivamus feugiat metus at dictum dignissim."] },
+  { label: "About", kepada: ["Kepada","Yth. Sahabat","Di","Surga"], body: ["Untuk kamu yang pergi terlalu cepat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi fermentum pulvinar nibh sed lorem interdum, et luctus nibh lobortis. In justo risus, posuere non feugiat sit amet, ullamcorper vel sapien."] },
+  { label: "About", kepada: ["Kepada","Yth. Bapak","Di","Surga"], body: ["Setiap hari aku berdoa untukmu. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porttitor tellus at dolor pellentesque ornare. Nullam consequat quam vitae velit interdum vestibulum."] },
+  { label: "About", kepada: ["Kepada","Yth. Ibu","Di","Surga"], body: ["Terima kasih untuk semua yang telah kau berikan. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec est felis, aliquet a ex vitae."] },
+  { label: "About", kepada: ["Kepada","Yth. Paman","Di","Surga"], body: ["Senyummu selalu kuingat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent rhoncus ante id ante ultrices. Duis fermentum risus vitae urna bibendum ultricies. Suspendisse semper tempor rhoncus."] },
+  { label: "About", kepada: ["Kepada","Yth. Bibi","Di","Surga"], body: ["Doa kami selalu bersamamu. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque auctor urna eget odio varius, ac feugiat eros rhoncus. Sed maximus turpis at posuere bibendum. Sed non commodo mauris."] },
+  { label: "About", kepada: ["Kepada","Yth. Adik","Di","Surga"], body: ["Kamu akan selalu ada di hati kami semua. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos."] },
+];
+
+function closedEnvSVG() {
+  return `<svg viewBox="0 0 72 50" fill="none">
+    <rect x="0.6" y="0.6" width="70.8" height="48.8" stroke="#000" stroke-width="1.2"/>
+    <polyline points="0.6,0.6 36,32 71.4,0.6" stroke="#000" stroke-width="1.2" fill="none"/>
+    <line x1="0.6" y1="49.4" x2="36" y2="32" stroke="#000" stroke-width="1.2"/>
+    <line x1="71.4" y1="49.4" x2="36" y2="32" stroke="#000" stroke-width="1.2"/>
+  </svg>`;
+}
+
+const grid = document.getElementById('grid');
+letters.forEach((l, i) => {
+  const card = document.createElement('div');
+  card.className = 'env-card';
+  const labelLines = l.date ? `${l.date}<br>${l.label}` : l.label;
+  card.innerHTML = `<div class="env-icon">${closedEnvSVG()}</div><div class="env-label">${labelLines}</div>`;
+  card.addEventListener('click', () => open(i));
+  grid.appendChild(card);
+});
+
+function open(i) {
+  const l = letters[i];
+  const popup = document.getElementById('popup');
+  document.getElementById('p-date').textContent = l.date || '';
+  document.getElementById('p-to').innerHTML = l.kepada.map(line => `<div>${line}</div>`).join('');
+  document.getElementById('p-body').innerHTML = l.body.map(p => `<p>${p}</p>`).join('');
+  popup.style.display = 'block';
+  popup.scrollTop = 0;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closePopup() {
+  document.getElementById('popup').style.display = 'none';
+  document.getElementById('overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>

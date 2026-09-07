@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>admin — surat untuk surga</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Times New Roman', Times, serif;
+  background: #fff;
+  color: #000;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 180px;
+  flex-shrink: 0;
+  border-right: 1px solid #000;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+}
+
+.sidebar-title {
+  font-size: 0.82rem;
+  font-weight: normal;
+  line-height: 1.4;
+}
+.sidebar-title a { text-decoration: none; color: #000; }
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  color: #888;
+  border: none;
+  background: none;
+  font-family: 'Times New Roman', serif;
+  text-align: left;
+  transition: color 0.15s;
+}
+.nav-item:hover { color: #000; }
+.nav-item.active { color: #000; border-bottom: 1px solid #000; display: inline-block; }
+
+.sidebar-back {
+  margin-top: auto;
+  font-size: 0.72rem;
+  color: #bbb;
+  text-decoration: none;
+}
+.sidebar-back:hover { color: #000; }
+
+/* MAIN */
+.main {
+  margin-left: 180px;
+  flex: 1;
+  padding: 2rem 2.5rem 4rem;
+  max-width: 700px;
+}
+
+.main-title {
+  font-size: 0.82rem;
+  font-weight: normal;
+  margin-bottom: 2rem;
+  color: #888;
+}
+
+/* PANEL */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* FORM */
+.field {
+  margin-bottom: 1.25rem;
+}
+.field label {
+  display: block;
+  font-size: 0.72rem;
+  color: #888;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.03em;
+}
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 0.3rem 0;
+  font-family: 'Times New Roman', serif;
+  font-size: 0.82rem;
+  color: #000;
+  background: none;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-bottom-color: #000;
+}
+.field textarea {
+  resize: vertical;
+  min-height: 220px;
+  line-height: 1.65;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e0e0e0;
+}
+.btn {
+  font-family: 'Times New Roman', serif;
+  font-size: 0.78rem;
+  background: none;
+  border: 1px solid #000;
+  padding: 0.4rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:hover { background: #000; color: #fff; }
+.btn-ghost {
+  border-color: #ccc;
+  color: #888;
+}
+.btn-ghost:hover { background: none; color: #000; border-color: #888; }
+
+/* LIST TABLE */
+.list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.list-count { font-size: 0.72rem; color: #888; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+thead th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: normal;
+  color: #888;
+  border-bottom: 1px solid #000;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+}
+tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+tbody tr:hover td { background: #fafafa; }
+
+.td-title { font-size: 0.78rem; line-height: 1.4; }
+.td-date { font-size: 0.7rem; color: #888; white-space: nowrap; }
+.td-status { font-size: 0.68rem; color: #888; }
+.td-status.pub { color: #000; }
+
+.row-actions { display: flex; gap: 0.75rem; }
+.row-btn {
+  font-family: 'Times New Roman', serif;
+  font-size: 0.68rem;
+  color: #bbb;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.row-btn:hover { color: #000; }
+.row-btn.del:hover { color: #c00; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #000;
+  color: #fff;
+  font-family: 'Times New Roman', serif;
+  font-size: 0.78rem;
+  padding: 0.6rem 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.toast.show { opacity: 1; }
+
+/* search */
+.search-row {
+  margin-bottom: 1rem;
+}
+.search-row input {
+  width: 200px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 0.25rem 0;
+  font-family: 'Times New Roman', serif;
+  font-size: 0.78rem;
+  outline: none;
+  background: none;
+}
+.search-row input:focus { border-bottom-color: #000; }
+
+/* MOBILE */
+@media (max-width: 640px) {
+  body { flex-direction: column; }
+  .sidebar { position: relative; width: 100%; min-height: auto; flex-direction: row; flex-wrap: wrap; gap: 1rem; padding: 1.25rem; border-right: none; border-bottom: 1px solid #000; }
+  .sidebar-nav { flex-direction: row; }
+  .main { margin-left: 0; padding: 1.25rem; }
+  .field-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-title"><a href="index.html">surat untuk surga</a></div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="show('buat')">buat</button>
+    <button class="nav-item" onclick="show('list')">list</button>
+  </nav>
+  <a href="index.html" class="sidebar-back">← kembali</a>
+</aside>
+
+<main class="main">
+  <div class="main-title" id="main-title">buat surat</div>
+
+  <!-- PANEL: BUAT -->
+  <div class="panel active" id="panel-buat">
+    <div class="field">
+      <label>kepada</label>
+      <input type="text" id="f-kepada" placeholder="Yth. nama, di surga">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>tanggal</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>status</label>
+        <select id="f-status">
+          <option value="draft">draft</option>
+          <option value="published">dipublikasikan</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>isi surat</label>
+      <textarea id="f-body" placeholder="Tuliskan suratmu di sini…"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="simpan()">simpan</button>
+      <button class="btn btn-ghost" onclick="resetForm()">bersihkan</button>
+    </div>
+  </div>
+
+  <!-- PANEL: LIST -->
+  <div class="panel" id="panel-list">
+    <div class="list-header">
+      <div class="list-count" id="list-count"></div>
+      <button class="btn" onclick="show('buat')" style="font-size:0.72rem;padding:0.3rem 0.9rem">+ buat baru</button>
+    </div>
+    <div class="search-row">
+      <input type="text" placeholder="cari surat…" oninput="renderList(this.value)">
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50%">kepada</th>
+          <th>tanggal</th>
+          <th>status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="list-body"></tbody>
+    </table>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let letters = [
+  { id:1, kepada:"Yth. Bapak, Di Surga", date:"2026-05-07", status:"published", body:"Lorem ipsum dolor sit amet..." },
+  { id:2, kepada:"Yth. Ibu, Di Surga", date:"2026-05-08", status:"published", body:"Masih banyak yang ingin kuceritakan..." },
+  { id:3, kepada:"Yth. Kakek, Di Surga", date:"2026-05-03", status:"draft", body:"Kenangan bersamamu tidak pernah pudar..." },
+  { id:4, kepada:"Yth. Nenek, Di Surga", date:"2026-04-28", status:"published", body:"Rindu yang tak terucap..." },
+  { id:5, kepada:"Yth. Sahabat, Di Surga", date:"2026-04-20", status:"draft", body:"Untuk kamu yang pergi terlalu cepat..." },
+];
+let editId = null;
+
+function show(panel) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + panel).classList.add('active');
+  document.querySelectorAll('.nav-item')[panel === 'buat' ? 0 : 1].classList.add('active');
+  document.getElementById('main-title').textContent = panel === 'buat' ? 'buat surat' : 'list surat';
+  if (panel === 'list') renderList('');
+}
+
+function renderList(q) {
+  const filtered = letters.filter(l => l.kepada.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('list-count').textContent = `${filtered.length} surat`;
+  document.getElementById('list-body').innerHTML = filtered.map(l => `
+    <tr>
+      <td class="td-title">${l.kepada}</td>
+      <td class="td-date">${fmtDate(l.date)}</td>
+      <td class="td-status ${l.status === 'published' ? 'pub' : ''}">${l.status}</td>
+      <td>
+        <div class="row-actions">
+          <button class="row-btn" onclick="editLetter(${l.id})">edit</button>
+          <button class="row-btn del" onclick="deleteLetter(${l.id})">hapus</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function editLetter(id) {
+  const l = letters.find(x => x.id === id);
+  if (!l) return;
+  editId = id;
+  document.getElementById('f-kepada').value = l.kepada;
+  document.getElementById('f-date').value = l.date;
+  document.getElementById('f-status').value = l.status;
+  document.getElementById('f-body').value = l.body;
+  show('buat');
+}
+
+function deleteLetter(id) {
+  letters = letters.filter(l => l.id !== id);
+  renderList('');
+  toast('surat dihapus');
+}
+
+function simpan() {
+  const kepada = document.getElementById('f-kepada').value.trim();
+  const body = document.getElementById('f-body').value.trim();
+  if (!kepada || !body) { toast('isi kepada dan isi surat'); return; }
+  const data = {
+    kepada,
+    date: document.getElementById('f-date').value,
+    status: document.getElementById('f-status').value,
+    body,
+  };
+  if (editId) {
+    const idx = letters.findIndex(l => l.id === editId);
+    if (idx !== -1) letters[idx] = { ...letters[idx], ...data };
+    editId = null;
+  } else {
+    letters.unshift({ id: Date.now(), ...data });
+  }
+  resetForm();
+  toast('surat disimpan');
+  show('list');
+}
+
+function resetForm() {
+  editId = null;
+  ['f-kepada','f-date','f-body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-status').value = 'draft';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// set today as default date
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
