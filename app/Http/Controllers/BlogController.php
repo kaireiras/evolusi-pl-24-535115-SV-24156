@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Blog;
 use Exception;
+use App\Models\Blog;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Log;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class BlogController extends Controller
 {
@@ -35,16 +35,15 @@ class BlogController extends Controller
         $validated = $request->validate([
             'isi_blog' => 'required|string|min:10'
         ]);
-        
-        try {
+        try{
             $blog = Blog::create($validated);
             return response()->json([
                 'message' => 'Blog created successfully',
                 'blog' => $blog
             ], 201);
-        } catch (Exception $e) {
+        } catch(Exception $e){
             Log::error('error creating blog: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to create blog'], 500);
+            return response()->json(['message'=> 'Failed to create blog'], 500);
         }
     }
 
@@ -53,18 +52,15 @@ class BlogController extends Controller
      */
     public function show(string $id)
     {
-        try {
+        try{
             $blog = Blog::findOrFail($id);
             return view('blog.show', compact('blog'));
-        } catch (ModelNotFoundException) {
+        }catch(ModelNotFoundException){
             return redirect()->route('blog.index')->with('error', 'Blog not found');
         }
     }
 
-    /**
-     * Show the form for editing the resource - Admin
-     */
-    public function edit(string $id)
+        public function edit(string $id)
     {
         try {
             $blog = Blog::findOrFail($id);
@@ -74,10 +70,7 @@ class BlogController extends Controller
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+       public function update(Request $request, string $id)
     {
         $validated = $request->validate([
             'isi_blog' => 'required|string|min:10'
@@ -102,16 +95,16 @@ class BlogController extends Controller
      */
     public function destroy(string $id)
     {
-        try {
+        try{
             $blog = Blog::findOrFail($id);
             $blog->delete();
 
             return response()->json([
-                'message' => 'Blog deleted successfully'
+                'message'=> 'Blog deleted successfully'
             ]);
-        } catch (Exception $e) {
+        }catch(Exception $e){
             Log::error('error deleting blog: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to delete blog'], 500);
+            return response()->json(['message'=>'Failed to delete blog'], 500);
         }
     }
 
