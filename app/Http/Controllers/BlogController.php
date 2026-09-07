@@ -16,6 +16,7 @@ class BlogController extends Controller
     public function index()
     {
         $blogs = Blog::latest()->paginate(10);
+
         return view('blog.index', compact('blogs'));
     }
 
@@ -33,17 +34,19 @@ class BlogController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'isi_blog' => 'required|string|min:10'
+            'isi_blog' => 'required|string|min:10',
         ]);
-        
+
         try {
             $blog = Blog::create($validated);
+
             return response()->json([
                 'message' => 'Blog created successfully',
-                'blog' => $blog
+                'blog' => $blog,
             ], 201);
         } catch (Exception $e) {
-            Log::error('error creating blog: ' . $e->getMessage());
+            Log::error('error creating blog: '.$e->getMessage());
+
             return response()->json(['message' => 'Failed to create blog'], 500);
         }
     }
@@ -55,6 +58,7 @@ class BlogController extends Controller
     {
         try {
             $blog = Blog::findOrFail($id);
+
             return view('blog.show', compact('blog'));
         } catch (ModelNotFoundException) {
             return redirect()->route('blog.index')->with('error', 'Blog not found');
@@ -68,6 +72,7 @@ class BlogController extends Controller
     {
         try {
             $blog = Blog::findOrFail($id);
+
             return view('admin.blog.edit', compact('blog'));
         } catch (ModelNotFoundException) {
             return redirect()->route('admin.blog.index')->with('error', 'Blog not found');
@@ -80,19 +85,20 @@ class BlogController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'isi_blog' => 'required|string|min:10'
+            'isi_blog' => 'required|string|min:10',
         ]);
-        
+
         try {
             $blog = Blog::findOrFail($id);
             $blog->update($validated);
 
             return response()->json([
                 'message' => 'Blog updated successfully',
-                'blog' => $blog
+                'blog' => $blog,
             ]);
         } catch (Exception $e) {
-            Log::error('error updating blog: ' . $e->getMessage());
+            Log::error('error updating blog: '.$e->getMessage());
+
             return response()->json(['message' => 'Failed to update blog'], 500);
         }
     }
@@ -107,10 +113,11 @@ class BlogController extends Controller
             $blog->delete();
 
             return response()->json([
-                'message' => 'Blog deleted successfully'
+                'message' => 'Blog deleted successfully',
             ]);
         } catch (Exception $e) {
-            Log::error('error deleting blog: ' . $e->getMessage());
+            Log::error('error deleting blog: '.$e->getMessage());
+
             return response()->json(['message' => 'Failed to delete blog'], 500);
         }
     }
@@ -122,6 +129,7 @@ class BlogController extends Controller
     {
         $blogs = Blog::latest()->paginate(15);
         $totalBlog = Blog::count();
+
         return view('admin.blog.index', compact('blogs', 'totalBlog'));
     }
 }

@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Blog extends Model
 {
     protected $table = 'blog';
+
     protected $primaryKey = 'id_blog';
 
     protected $fillable = [
-        'isi_blog'
+        'isi_blog',
     ];
 }
