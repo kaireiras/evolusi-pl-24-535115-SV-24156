@@ -56,18 +56,20 @@
 @section('content')
 <div class="envelope-grid" id="grid">
     @forelse($blogs as $blog)
-        <div class="env-card" onclick="openLetter({{ $blog->id_blog }})">
+        <div class="env-card" onclick="openLetter({{ $blog->id_blog ?? $blog->id }})">
             <div class="env-icon">
                 <img src="{{ asset('envelope/envelope1.png') }}" alt="Surat">
             </div>
             <div class="env-label">
                 {{ $blog->created_at->format('M d, Y') }}<br>
-                About
             </div>
         </div>
 
-        <!-- Hidden data for popup -->
-        <div class="letter-data" data-id="{{ $blog->id_blog }}" style="display:none;">
+        <!-- Hidden data for popup & comments -->
+        <div class="letter-data" 
+             data-id="{{ $blog->id_blog ?? $blog->id }}" 
+             data-comments='@json($blog->comments)'
+             style="display:none;">
             <div class="letter-date">{{ $blog->created_at->format('M d, Y') }}</div>
             <div class="letter-body">{{ $blog->isi_blog }}</div>
         </div>
@@ -94,7 +96,32 @@
             <div>Surga</div>
         </div>
     </div>
+    
+    <!-- Isi Utama Surat -->
     <div class="popup-body" id="p-body"></div>
+
+    <!-- Garis Pembatas -->
+    <hr class="popup-divider">
+
+    <!-- Section Komentar & Balasan -->
+    <div class="comments-section">
+        <h4 class="comments-title">Lilin Doa & Balasan</h4>
+        
+        <!-- List Komentar -->
+        <div class="comments-list" id="p-comments-list"></div>
+
+        <!-- Form Tambah Komentar -->
+        <form id="comment-form" method="POST" action="" class="comment-form">
+            @csrf
+            <div class="form-group">
+                <input type="text" name="pengirim" placeholder="Nama kamu / Anonim (opsional)" class="comment-input">
+            </div>
+            <div class="form-group">
+                <textarea name="isi_balasan" rows="3" placeholder="Tulis doa atau pesan penyemangat..." class="comment-textarea" required></textarea>
+            </div>
+            <button type="submit" class="comment-submit-btn">Kirim Doa</button>
+        </form>
+    </div>
 </div>
 
 <style>
@@ -168,6 +195,97 @@
         word-wrap: break-word;
     }
 
+    /* Style Section Komentar */
+    .popup-divider {
+        margin: 2rem 0 1.5rem;
+        border: 0;
+        border-top: 1px dashed #ccc;
+    }
+
+    .comments-title {
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comment-item {
+        background: #fdfdfd;
+        border: 1px solid #eaeaea;
+        padding: 0.65rem 0.85rem;
+        border-radius: 4px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.68rem;
+        color: #666;
+        margin-bottom: 0.3rem;
+        font-weight: bold;
+    }
+
+    .comment-text {
+        font-size: 0.72rem;
+        color: #222;
+        white-space: pre-wrap;
+    }
+
+    .no-comments {
+        font-size: 0.7rem;
+        color: #888;
+        font-style: italic;
+    }
+
+    /* Form Input Style */
+    .comment-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .comment-input, .comment-textarea {
+        width: 100%;
+        padding: 0.5rem;
+        font-family: inherit;
+        font-size: 0.72rem;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-sizing: border-box;
+    }
+
+    .comment-input:focus, .comment-textarea:focus {
+        outline: none;
+        border-color: #666;
+    }
+
+    .comment-submit-btn {
+        align-self: flex-end;
+        background: #333;
+        color: #fff;
+        border: none;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.7rem;
+        font-family: inherit;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: background 0.2s;
+    }
+
+    .comment-submit-btn:hover {
+        background: #000;
+    }
+
     @media (max-width: 640px) {
         .letter-popup { left: 50%; transform: translateX(-50%); top: 60px; }
     }
@@ -181,9 +299,47 @@
         if (!data) return;
 
         const popup = document.getElementById('popup');
+        
+        // Fill Date & Body
         document.getElementById('p-date').textContent = data.querySelector('.letter-date').textContent;
         document.getElementById('p-body').textContent = data.querySelector('.letter-body').textContent;
         
+        // Update Form Action URL secara dinamis
+        const commentForm = document.getElementById('comment-form');
+        commentForm.action = `/blog/${id}/comment`;
+
+        // Render Komentar
+        const commentsList = document.getElementById('p-comments-list');
+        commentsList.innerHTML = ''; // Clear isi sebelumnya
+        
+        const rawComments = data.getAttribute('data-comments');
+        let comments = [];
+        try {
+            comments = JSON.parse(rawComments);
+        } catch(e) {
+            comments = [];
+        }
+
+        if (comments && comments.length > 0) {
+            comments.forEach(comment => {
+                const commentEl = document.createElement('div');
+                commentEl.className = 'comment-item';
+                
+                const dateStr = comment.created_at ? new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                
+                commentEl.innerHTML = `
+                    <div class="comment-header">
+                        <span>💬 ${escapeHtml(comment.pengirim || 'Anonim')}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div class="comment-text">${escapeHtml(comment.isi_balasan)}</div>
+                `;
+                commentsList.appendChild(commentEl);
+            });
+        } else {
+            commentsList.innerHTML = '<div class="no-comments">Belum ada doa atau balasan untuk surat ini. Sebar kebaikan pertama!</div>';
+        }
+
         popup.style.display = 'block';
         popup.scrollTop = 0;
         document.getElementById('overlay').classList.add('open');
@@ -192,6 +348,17 @@
     function closePopup() {
         document.getElementById('popup').style.display = 'none';
         document.getElementById('overlay').classList.remove('open');
+    }
+
+    // Helper untuk cegah XSS pada komentar
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 </script>
 @endsection
