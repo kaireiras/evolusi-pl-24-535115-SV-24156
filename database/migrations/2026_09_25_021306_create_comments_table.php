@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            
+
             // Mereferensikan kolom 'id_blog' pada tabel 'blog'
             $table->foreignId('blog_id')
-                  ->constrained(table: 'blog', column: 'id_blog')
-                  ->onDelete('cascade');
-                  
+                ->constrained(table: 'blog', column: 'id_blog')
+                ->onDelete('cascade');
+
             $table->text('isi_balasan');
             $table->string('pengirim')->default('Anonim');
             $table->timestamps();

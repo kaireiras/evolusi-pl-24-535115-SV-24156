@@ -13,6 +13,7 @@ class Blog extends Model
     protected $fillable = [
         'isi_blog',
     ];
+
     public function comments()
     {
         return $this->hasMany(Comment::class, 'blog_id', 'id_blog');
@@ -20,4 +21,3 @@ class Blog extends Model
         // return $this->hasMany(Comment::class, 'blog_id', 'id');
     }
 }
-

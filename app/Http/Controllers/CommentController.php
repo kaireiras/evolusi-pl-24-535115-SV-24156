@@ -9,11 +9,12 @@ use Illuminate\Http\Request;
 class CommentController extends Controller
 {
     public function index()
-{
-    $blogs = Blog::with('comments')->latest()->paginate(10);
+    {
+        $blogs = Blog::with('comments')->latest()->paginate(10);
 
-    return view('blog.index', compact('blogs'));
-}
+        return view('blog.index', compact('blogs'));
+    }
+
     public function store(Request $request, string $blogId)
     {
         $validated = $request->validate([
@@ -22,7 +23,7 @@ class CommentController extends Controller
         ]);
 
         $blog = Blog::findOrFail($blogId);
-        
+
         $blog->comments()->create([
             'isi_balasan' => $validated['isi_balasan'],
             'pengirim' => $validated['pengirim'] ?? 'Anonim',
