@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CommentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -10,7 +11,7 @@ Route::get('/', function () {
 // Guest Routes
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 
-// Admin Routes (tanpa middleware untuk sementara)
+// Admin Routes
 Route::get('/admin/blog', [BlogController::class, 'adminIndex'])->name('admin.blog.index');
 Route::get('/admin/blog/create', [BlogController::class, 'create'])->name('admin.blog.create');
 Route::get('/admin/blog/{id}/edit', [BlogController::class, 'edit'])->name('admin.blog.edit');
@@ -18,7 +19,12 @@ Route::post('/admin/blog', [BlogController::class, 'store'])->name('admin.blog.s
 Route::put('/admin/blog/{id}', [BlogController::class, 'update'])->name('admin.blog.update');
 Route::delete('/admin/blog/{id}', [BlogController::class, 'destroy'])->name('admin.blog.destroy');
 
-// API Routes (tanpa named routes)
+// API & Comment Routes
 Route::post('/api/blog', [BlogController::class, 'store']);
 Route::put('/api/blog/{id}', [BlogController::class, 'update']);
 Route::delete('/api/blog/{id}', [BlogController::class, 'destroy']);
+Route::post('/api/blog/{blogId}/comment', [CommentController::class, 'store'])->name('comment.store');
+Route::put('/comment/{id}', [CommentController::class, 'update'])->name('comment.update');
+Route::delete('/comment/{id}', [CommentController::class, 'destroy'])->name('comment.destroy');
+// Tambahkan route ini di routes/web.php
+Route::post('/blog/{blogId}/comment', [CommentController::class, 'store'])->name('comment.store');
