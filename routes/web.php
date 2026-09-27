@@ -29,6 +29,4 @@ Route::delete('/comment/{id}', [CommentController::class, 'destroy'])->name('com
 // Tambahkan route ini di routes/web.php
 Route::post('/blog/{blogId}/comment', [CommentController::class, 'store'])->name('comment.store');
 
-
-Route::get('/api/komentar',[CommentController::class, 'apiIndex']);
-
+Route::get('/api/komentar', [CommentController::class, 'apiIndex']);

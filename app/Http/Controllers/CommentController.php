@@ -15,10 +15,11 @@ class CommentController extends Controller
         return view('blog.index', compact('blogs'));
     }
 
-    public function apiIndex(){
+    public function apiIndex()
+    {
         return response()->json([
             'status' => 'success',
-            'data'=>Comment::with('blog')->latest()->get()
+            'data' => Comment::with('blog')->latest()->get(),
         ]);
     }
 
