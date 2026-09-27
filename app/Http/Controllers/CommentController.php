@@ -15,6 +15,13 @@ class CommentController extends Controller
         return view('blog.index', compact('blogs'));
     }
 
+    public function apiIndex(){
+        return response()->json([
+            'status' => 'success',
+            'data'=>Comment::with('blog')->latest()->get()
+        ]);
+    }
+
     public function store(Request $request, string $blogId)
     {
         $validated = $request->validate([
