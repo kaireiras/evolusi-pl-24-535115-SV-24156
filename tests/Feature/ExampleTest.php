@@ -14,7 +14,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(302);
+        $response->assertStatus(322);
 
         // $this->assertTrue(false); // Sengaja digagalkan
     }
