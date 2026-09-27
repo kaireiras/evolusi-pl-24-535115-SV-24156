@@ -7,7 +7,7 @@ function formatPengirim(nama) {
 
 describe('Logika Format Pengirim', () => {
   it('mengubah nama pengirim menjadi huruf kapital', () => {
-    expect(formatPengirim('rakai')).toBe('SALAH')
+    expect(formatPengirim('rakai')).toBe('RAKAI')
   })
 
   it('mengembalikan Anonim jika nama kosong', () => {
