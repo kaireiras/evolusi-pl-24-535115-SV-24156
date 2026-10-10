@@ -32,10 +32,18 @@ class CommentController extends Controller
 
         $blog = Blog::findOrFail($blogId);
 
-        $blog->comments()->create([
+        $comment = $blog->comments()->create([
             'isi_balasan' => $validated['isi_balasan'],
             'pengirim' => $validated['pengirim'] ?? 'Anonim',
         ]);
+
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Komentar/Doa berhasil dikirim.',
+                'data' => $comment,
+            ], 201);
+        }
 
         return redirect()->back()->with('success', 'Komentar/Doa berhasil dikirim.');
     }
