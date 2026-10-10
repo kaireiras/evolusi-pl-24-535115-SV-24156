@@ -32,5 +32,4 @@ Route::post('/blog/{blogId}/comment', [CommentController::class, 'store'])->name
 
 Route::get('/api/komentar', [CommentController::class, 'apiIndex']);
 
-
-//test
+// test
