@@ -1,37 +1,63 @@
-# Stage 1: Ambil Composer dari Docker Hub
-FROM docker.io/library/composer:latest AS composer_stage
-
-# Stage 2: Main PHP Image
-FROM docker.io/library/php:8.4-cli
-
-# Install dependensi sistem dan ekstensi PHP yang dibutuhkan Laravel
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libpq-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    curl \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
-
-# Copy Composer dari Stage 1
-COPY --from=composer_stage /usr/bin/composer /usr/bin/composer
+# ==========================================
+# STAGE 1: BUILDER (Tahap Membangun)
+# ==========================================
+FROM docker.io/library/composer:2.8 AS builder
 
 WORKDIR /app
 
-# [POIN 3] Salin composer.json & composer.lock DULUAN agar layer cache bekerja
+# Salin manifes dependensi terlebih dahulu
 COPY composer.json composer.lock ./
 
-# Install dependensi PHP
-RUN composer install --no-scripts --no-autoloader --prefer-dist
+# Pasang dependensi produksi (tanpa dev-dependencies)
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# Salin seluruh sisa kode aplikasi
+# Salin seluruh kode aplikasi
 COPY . .
 
-# Optimize autoload
-RUN composer dump-autoload --optimize
+# Buat classmap autoload produksi yang optimal
+RUN composer dump-autoload --optimize --no-dev
+
+
+# ==========================================
+# STAGE 2: PRODUCTION RUNTIME (Tahap Berjalan)
+# ==========================================
+FROM docker.io/library/php:8.4-cli-alpine
+
+# Pasang runtime packages & ekstensi PHP yang dibutuhkan Laravel
+RUN apk add --no-cache \
+    curl \
+    libpng \
+    libxml2 \
+    oniguruma \
+    && apk add --no-cache --virtual .build-deps \
+    libpng-dev \
+    libxml2-dev \
+    oniguruma-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring pcntl bcmath \
+    && apk del .build-deps
+
+WORKDIR /app
+
+# Salin hasil kompilasi dan dependensi dari Stage Builder
+COPY --from=builder /app /app
+
+# Buat direktori storage/cache yang diperlukan Laravel, buat user non-root, dan set hak akses
+RUN mkdir -p /app/storage/framework/cache/data \
+             /app/storage/framework/sessions \
+             /app/storage/framework/views \
+             /app/storage/logs \
+             /app/bootstrap/cache \
+    && addgroup -S appgroup \
+    && adduser -S appuser -G appgroup \
+    && chown -R appuser:appgroup /app/storage /app/bootstrap/cache \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
+
+# Konfigurasi HEALTHCHECK (interval pendek agar cepat terdeteksi 'healthy')
+HEALTHCHECK --interval=5s --timeout=3s --start-period=3s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/ || exit 1
+
+# Pindah ke user non-root
+USER appuser
 
 EXPOSE 8000
 

@@ -20,6 +20,7 @@ Route::put('/admin/blog/{id}', [BlogController::class, 'update'])->name('admin.b
 Route::delete('/admin/blog/{id}', [BlogController::class, 'destroy'])->name('admin.blog.destroy');
 
 // API & Comment Routes
+Route::get('/api/blog', [BlogController::class, 'apiIndex']);
 Route::post('/api/blog', [BlogController::class, 'store']);
 Route::put('/api/blog/{id}', [BlogController::class, 'update']);
 Route::delete('/api/blog/{id}', [BlogController::class, 'destroy']);

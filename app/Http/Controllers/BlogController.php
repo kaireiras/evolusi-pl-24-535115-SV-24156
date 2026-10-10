@@ -21,6 +21,19 @@ class BlogController extends Controller
     }
 
     /**
+     * Display a listing of the resource for API
+     */
+    public function apiIndex()
+    {
+        $blogs = Blog::with('comments')->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $blogs,
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource - Admin
      */
     public function create()
