@@ -110,35 +110,37 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Downcase Repository Name
+      # Siapkan nama repositori (huruf kecil) dan tag citra secara aman
+      - name: Prepare Docker Metadata
         run: |
-          echo "IMAGE_REPO=ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+          REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_REPO=ghcr.io/${REPO_NAME}" >> $GITHUB_ENV
 
-      # Menentukan tag: jika push ke main jadi latest, jika push ke dev jadi dev
-      - name: Set Image Tag
-        run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             echo "DOCKER_TAG=latest" >> $GITHUB_ENV
           else
             echo "DOCKER_TAG=dev" >> $GITHUB_ENV
           fi
 
+      # Build dan Push Backend Image
       - name: Build & Push Backend Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.IMAGE_REPO }}-backend:${{ env.DOCKER_TAG }}
+          tags: ${{ env.IMAGE_REPO }}/backend:${{ env.DOCKER_TAG }}
 
+      # Build dan Push Frontend Image
       - name: Build & Push Frontend Docker Image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ env.IMAGE_REPO }}-frontend:${{ env.DOCKER_TAG }}
+          tags: ${{ env.IMAGE_REPO }}/frontend:${{ env.DOCKER_TAG }}
 
+      # Simulasi deployment menggunakan GitHub Secret
       - name: Trigger Server Deployment
         run: |
           echo "Connecting to target deployment environment..."
