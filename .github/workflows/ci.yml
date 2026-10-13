@@ -31,7 +31,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           extensions: mbstring, pdo, pdo_mysql, bcmath
           coverage: none
 
@@ -48,8 +48,8 @@ jobs:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_DATABASE: sus_database
-          DB_USERNAME: root
-          DB_PASSWORD: root
+          DB_USERNAME: rakai
+          DB_PASSWORD: rahasia123
 
       - name: Run Migrations
         run: php artisan migrate --force
