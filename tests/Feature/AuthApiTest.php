@@ -12,8 +12,8 @@ class AuthApiTest extends TestCase
     public function test_user_can_login()
     {
         $response = $this->postJson('/api/login', [
-            'email' => 'admin123',
-            'password' => 'admin1233',
+            'email' => 'admin',
+            'password' => 'admin123',
         ]);
 
         $response->assertStatus(200)
