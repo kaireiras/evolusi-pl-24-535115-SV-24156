@@ -52,6 +52,15 @@ jobs:
           DB_DATABASE: sus_database
           DB_USERNAME: root
           DB_PASSWORD: root
+      - name: Run Database Seeder
+        run: php artisan db:seed --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: sus_database
+          DB_USERNAME: root
+          DB_PASSWORD: root
       - run: php artisan test
         env:
           DB_CONNECTION: mysql
