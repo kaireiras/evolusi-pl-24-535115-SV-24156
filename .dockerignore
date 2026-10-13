@@ -1,7 +1,8 @@
-node_modules
-vendor
-.git
+frontend/
+vendor/
+node_modules/
+.git/
 .env
-.phpunit.cache
+tests/
 storage/*.key
-tests
+.phpunit.cache/

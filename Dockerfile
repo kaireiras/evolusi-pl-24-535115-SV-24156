@@ -11,7 +11,7 @@ COPY composer.json composer.lock ./
 # Pasang dependensi produksi (tanpa dev-dependencies)
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# Salin seluruh kode aplikasi
+# Salin seluruh kode aplikasi (folder frontend terabaikan oleh .dockerignore)
 COPY . .
 
 # Buat classmap autoload produksi yang optimal
@@ -52,9 +52,9 @@ RUN mkdir -p /app/storage/framework/cache/data \
     && chown -R appuser:appgroup /app/storage /app/bootstrap/cache \
     && chmod -R 775 /app/storage /app/bootstrap/cache
 
-# Konfigurasi HEALTHCHECK (interval pendek agar cepat terdeteksi 'healthy')
-HEALTHCHECK --interval=5s --timeout=3s --start-period=3s --retries=3 \
-  CMD curl -f http://127.0.0.1:8000/ || exit 1
+# Konfigurasi HEALTHCHECK diarahkan ke /up bawaan Laravel
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/up || exit 1
 
 # Pindah ke user non-root
 USER appuser

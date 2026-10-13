@@ -1,0 +1,99 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  # ==========================================
+  # JOB 1: Test Backend Laravel
+  # ==========================================
+  backend-tests:
+    name: Backend Feature Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: sus_database
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_mysql, bcmath
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+        working-directory: . # Sesuaikan jika backend ada di subfolder './backend'
+
+      - name: Prepare Laravel Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: sus_database
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      - name: Run Migrations
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: sus_database
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      - name: Run PHPUnit Tests
+        run: php artisan test
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: sus_database
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+  # ==========================================
+  # JOB 2: Build & Check Frontend Vue 3
+  # ==========================================
+  frontend-build:
+    name: Frontend Build Check
+    runs-on: ubuntu-latest
+    needs: [] # Dijalankan paralel atau bisa diisi [backend-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json # Sesuaikan path package-lock
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: frontend # Sesuaikan jika folder frontend bernama 'frontend'
+
+      - name: Build Vue App
+        run: npm run build
+        working-directory: frontend

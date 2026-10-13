@@ -1,6 +1,9 @@
 <template>
   <div class="page">
-    <h1>surat untuk surga</h1>
+    <div class="top-nav">
+      <h1>surat untuk surga</h1>
+      <button class="logout-btn" @click="handleLogout">keluar</button>
+    </div>
 
     <div v-if="loading" class="state-message">
       <p>Memuat surat...</p>
@@ -115,9 +118,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import axios from 'axios'
+import { useRouter } from 'vue-router'
+import api from '../api'
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
+const router = useRouter()
 
 const letters = ref([])
 const loading = ref(true)
@@ -146,7 +150,7 @@ const fetchLetters = async () => {
   loading.value = true
   error.value = null
   try {
-    const res = await axios.get(`${apiUrl}/blog`)
+    const res = await api.get('/blog')
     letters.value = res.data.data || res.data || []
   } catch (err) {
     console.error('Gagal mengambil data surat:', err)
@@ -189,7 +193,7 @@ const submitComment = async () => {
       pengirim: commentForm.value.pengirim.trim() || 'Anonim'
     }
 
-    const res = await axios.post(`${apiUrl}/blog/${letterId}/comment`, payload)
+    const res = await api.post(`/blog/${letterId}/comment`, payload)
     const newComment = res.data?.data || {
       id: Date.now(),
       blog_id: letterId,
@@ -205,6 +209,17 @@ const submitComment = async () => {
     alert('Gagal mengirim doa/balasan. Coba lagi.')
   } finally {
     submitting.value = false
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    await api.post('/logout')
+  } catch (e) {
+    // Tetap abaikan jika backend sudah menganggap token tidak valid
+  } finally {
+    localStorage.clear()
+    router.push('/login')
   }
 }
 
@@ -227,11 +242,33 @@ onUnmounted(() => {
   color: #000;
 }
 
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2.5rem;
+}
+
 h1 {
   font-size: 0.95rem;
   font-weight: normal;
-  margin-bottom: 2.5rem;
+  margin: 0;
   letter-spacing: 0;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.75rem;
+  color: #888;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.logout-btn:hover {
+  color: #000;
 }
 
 .state-message {
