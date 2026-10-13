@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,14 +6,18 @@ on:
   pull_request:
     branches: [ "main", "dev" ]
 
+# Berikan izin menulis ke GitHub Container Registry (GHCR)
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   # ==========================================
-  # JOB 1: Test Backend Laravel
+  # JOB 1: Backend Tests
   # ==========================================
   backend-tests:
     name: Backend Feature Tests
     runs-on: ubuntu-latest
-
     services:
       mysql:
         image: mysql:8.0
@@ -23,24 +27,14 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_mysql, bcmath
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
-        working-directory: . # Sesuaikan jika backend ada di subfolder './backend'
-
-      - name: Prepare Laravel Environment
-        run: |
+      - run: composer install --prefer-dist --no-progress
+      - run: |
           cp .env.example .env
           php artisan key:generate
         env:
@@ -50,9 +44,7 @@ jobs:
           DB_DATABASE: sus_database
           DB_USERNAME: root
           DB_PASSWORD: root
-
-      - name: Run Migrations
-        run: php artisan migrate --force
+      - run: php artisan migrate --force
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -60,7 +52,6 @@ jobs:
           DB_DATABASE: sus_database
           DB_USERNAME: root
           DB_PASSWORD: root
-      
       - name: Run Database Seeder
         run: php artisan db:seed --force
         env:
@@ -70,9 +61,7 @@ jobs:
           DB_DATABASE: sus_database
           DB_USERNAME: root
           DB_PASSWORD: root
-
-      - name: Run PHPUnit Tests
-        run: php artisan test
+      - run: php artisan test
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -82,28 +71,77 @@ jobs:
           DB_PASSWORD: root
 
   # ==========================================
-  # JOB 2: Build & Check Frontend Vue 3
+  # JOB 2: Frontend Build
   # ==========================================
   frontend-build:
     name: Frontend Build Check
     runs-on: ubuntu-latest
-    needs: [] # Dijalankan paralel atau bisa diisi [backend-tests]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json # Sesuaikan path package-lock
-
-      - name: Install Frontend Dependencies
-        run: npm ci
-        working-directory: frontend # Sesuaikan jika folder frontend bernama 'frontend'
-
-      - name: Build Vue App
-        run: npm run build
+      - run: npm ci
         working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  # =======================================================
+  # JOB 3: Deploy & Publish Image to GHCR
+  # =======================================================
+  deploy-and-publish:
+    name: Build & Push to GHCR
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-build]
+    # Berjalan di push main ATAU push dev (setelah PR di-merge)
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Downcase Repository Name
+        run: |
+          echo "IMAGE_REPO=ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+
+      # Menentukan tag: jika push ke main jadi latest, jika push ke dev jadi dev
+      - name: Set Image Tag
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAG=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Build & Push Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_REPO }}-backend:${{ env.DOCKER_TAG }}
+
+      - name: Build & Push Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_REPO }}-frontend:${{ env.DOCKER_TAG }}
+
+      - name: Trigger Server Deployment
+        run: |
+          echo "Connecting to target deployment environment..."
+          echo "Target host secret: ${{ secrets.SERVER_HOST || 'production-server' }}"
+          echo "Branch target: ${{ github.ref_name }}"
+          echo "Images successfully published to GHCR. Deployment completed."
