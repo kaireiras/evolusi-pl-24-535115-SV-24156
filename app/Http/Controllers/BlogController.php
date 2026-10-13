@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 class BlogController extends Controller
 {
     /**
-     * Display a listing of the resource - Guest View
+     * Display a listing of the resource - Guest View (Blade)
      */
     public function index()
     {
@@ -21,7 +21,20 @@ class BlogController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource - Admin
+     * Display a listing of the resource for API (User & Admin)
+     */
+    public function apiIndex()
+    {
+        $blogs = Blog::with('comments')->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $blogs,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource - Admin View (Blade)
      */
     public function create()
     {
@@ -29,7 +42,7 @@ class BlogController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created resource in storage (API - Admin Only)
      */
     public function store(Request $request)
     {
@@ -41,6 +54,7 @@ class BlogController extends Controller
             $blog = Blog::create($validated);
 
             return response()->json([
+                'status' => 'success',
                 'message' => 'Blog created successfully',
                 'blog' => $blog,
             ], 201);
@@ -52,7 +66,7 @@ class BlogController extends Controller
     }
 
     /**
-     * Display the specified resource - Guest View
+     * Display the specified resource - Guest View (Blade)
      */
     public function show(string $id)
     {
@@ -66,7 +80,7 @@ class BlogController extends Controller
     }
 
     /**
-     * Show the form for editing the resource - Admin
+     * Show the form for editing the resource - Admin View (Blade)
      */
     public function edit(string $id)
     {
@@ -80,7 +94,7 @@ class BlogController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified resource in storage (API - Admin Only)
      */
     public function update(Request $request, string $id)
     {
@@ -93,9 +107,12 @@ class BlogController extends Controller
             $blog->update($validated);
 
             return response()->json([
+                'status' => 'success',
                 'message' => 'Blog updated successfully',
                 'blog' => $blog,
             ]);
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Blog not found'], 404);
         } catch (Exception $e) {
             Log::error('error updating blog: '.$e->getMessage());
 
@@ -104,7 +121,7 @@ class BlogController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (API - Admin Only)
      */
     public function destroy(string $id)
     {
@@ -113,8 +130,11 @@ class BlogController extends Controller
             $blog->delete();
 
             return response()->json([
+                'status' => 'success',
                 'message' => 'Blog deleted successfully',
             ]);
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Blog not found'], 404);
         } catch (Exception $e) {
             Log::error('error deleting blog: '.$e->getMessage());
 
@@ -123,7 +143,7 @@ class BlogController extends Controller
     }
 
     /**
-     * Admin dashboard - show all blogs
+     * Admin dashboard - show all blogs (Blade)
      */
     public function adminIndex()
     {

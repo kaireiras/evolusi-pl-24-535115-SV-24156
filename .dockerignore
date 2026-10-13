@@ -1,0 +1,8 @@
+frontend/
+vendor/
+node_modules/
+.git/
+.env
+tests/
+storage/*.key
+.phpunit.cache/
