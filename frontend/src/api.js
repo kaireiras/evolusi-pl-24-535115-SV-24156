@@ -9,7 +9,6 @@ const api = axios.create({
   }
 })
 
-// Otomatis tempelkan Bearer token jika ada di localStorage
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
